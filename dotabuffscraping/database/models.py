@@ -1,16 +1,21 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from sqlalchemy import Column, Integer, String, ForeignKey, select
 
-
-Base = declarative_base()
 # Создаем таблицу postgres
-DATABASE_URL = "lalala"
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/dotabuffparcer"
 # создаем движок базы данных и сесию
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
+
+class Base(DeclarativeBase,AsyncAttrs):
+    def __repr__(self):
+        cols = []
+        for col in self.__table__.columns.keys():
+            cols.append(f"{col}={getattr(self, col)}")
+        return f"<{self.__class__.__name__} {",".join(cols)}>"
 
 
 # Добавляем таблицы с relationship(связей между таблицами)

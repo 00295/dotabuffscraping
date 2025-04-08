@@ -6,10 +6,10 @@ from database.requst import get_heroes
 list_heroes_name = []
 
 characteristics_list = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Сила", callback_data="Сила")],
-    [InlineKeyboardButton(text="Ловкость", callback_data="Ловкость")],
-    [InlineKeyboardButton(text="Интелект", callback_data="Интеллект")],
-    [InlineKeyboardButton(text="Унмверсальный",callback_data="Универсальные")],
+    [InlineKeyboardButton(text="Сила", callback_data="chara_Сила")],
+    [InlineKeyboardButton(text="Ловкость", callback_data="chara_Ловкость")],
+    [InlineKeyboardButton(text="Интелект", callback_data="chara_Интеллект")],
+    [InlineKeyboardButton(text="Унмверсальный",callback_data="chara_Универсальные")],
     ])
 
 async def heroes(characteristics):
