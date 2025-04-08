@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, select
 
 Base = declarative_base()
 # Создаем таблицу postgres
-DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/dotabuffparcer"
+DATABASE_URL = "lalala"
 # создаем движок базы данных и сесию
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
