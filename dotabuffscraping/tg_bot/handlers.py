@@ -15,6 +15,7 @@ from database.requst import check_heroes_id, check_counters_heroes, get_all_hero
 
 router = Router()
 
+
 class Write_hero(StatesGroup):
     Write_Hero = State()
 
@@ -30,6 +31,10 @@ async def command_help(message: Message) -> None:
 async def user_id(message: Message):
     if message.from_user.id == int(getenv("ADMIN_ID")):
         await message.answer("Вы зашли как администратор что вы хотитте зделать", reply_markup=admin_keyboard)
+
+@router.message(Command("test"))
+async def start_selection(message:Message):
+    await message.answer("Выбирите героив для анализа")
 
 @router.message(Command("Heroes"))
 async def command_heroes(message: Message):
@@ -52,15 +57,18 @@ async def write_h(message: Message, state: FSMContext):
     data = await state.get_data()
     data_id = await get_all_heroes(data["name"])
     if data_id == True:
-        await message.answer("Етого героя не сущиствует попробуйте еще раз")
+        await message.answer("Этого героя не сущиствует попробуйте еще раз")
         return
     else:
-        counter_heroes = await check_counters_heroes(data_id)
+        top_counters, worst_counters  = await check_counters_heroes(data_id.id, full_check=False)
         text = f"Контрпики для {data["name"]}:\n\n"
-        for counter_heroe in counter_heroes:
-            text += f"{counter_heroe.counter_name}: {counter_heroe.position}\n"
-        await message.answer(text)
-    await state.clear()
+        for top_counter in top_counters:
+            text += f"{top_counter.counter_name}: {top_counter.position}\n"
+        text += f"\nПять худших герояв против {data["name"]}:\n"
+        for worst_counter in worst_counters:
+            text += f"{worst_counter.counter_name}: {worst_counter.position}\n"
+        await message.answer(text, reply_markup= await more_info_heroes(characteristics=data_id.characteristics, hero=data_id.id))
+        await state.clear()
 
 @router.callback_query(F.data.startswith("chara_"))
 async def strength_heroes_list(callback: CallbackQuery):

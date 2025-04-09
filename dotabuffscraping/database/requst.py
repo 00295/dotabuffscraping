@@ -37,7 +37,7 @@ async def get_all_heroes(hero_name):
         current_hero = await session.scalar(select(Hero).where(Hero.name == hero_name))
         # но передаем ток idW
         if current_hero:
-            return current_hero.id
+            return current_hero
         else:
             return True
         

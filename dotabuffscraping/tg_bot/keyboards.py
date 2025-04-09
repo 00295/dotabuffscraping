@@ -12,7 +12,7 @@ characteristics_list = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Сила", callback_data="chara_Сила")],
     [InlineKeyboardButton(text="Ловкость", callback_data="chara_Ловкость")],
     [InlineKeyboardButton(text="Интелект", callback_data="chara_Интеллект")],
-    [InlineKeyboardButton(text="Унмверсальный",callback_data="chara_Универсальные")],
+    [InlineKeyboardButton(text="Универсальный",callback_data="chara_Универсальные")],
     ])
 
 admin_keyboard = InlineKeyboardMarkup(inline_keyboard=[
