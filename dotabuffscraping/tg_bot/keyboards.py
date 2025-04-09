@@ -3,6 +3,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from database.requst import get_heroes
 
+
+
+size_pages = 9
 list_heroes_name = []
 
 characteristics_list = InlineKeyboardMarkup(inline_keyboard=[
@@ -12,10 +15,35 @@ characteristics_list = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Унмверсальный",callback_data="chara_Универсальные")],
     ])
 
-async def heroes(characteristics):
-    all_heroes = await get_heroes(characteristics)
+admin_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Обновить базу данных", callback_data="start_scraping")]
+    ])
+
+async def heroes(characteristics, page: int = 0):
+    all_heroes = (await get_heroes(characteristics)).all()
     builder = InlineKeyboardBuilder()
-    for heroes in all_heroes:
-        list_heroes_name.append(heroes.name)
+    total_pages = (len(all_heroes) + size_pages - 1) // size_pages
+
+    first_heroes_id_current_page = page * size_pages
+    last_heroes_id_current_page = first_heroes_id_current_page + size_pages
+    heroes_on_page = all_heroes[first_heroes_id_current_page:last_heroes_id_current_page]
+
+    for heroes in heroes_on_page:
         builder.add(InlineKeyboardButton(text=heroes.name, callback_data=f"heroes_{heroes.id}"))
+    builder.add(InlineKeyboardButton(text="<<<<", callback_data=f"navigation_{characteristics}_{page - 1}"))
+    builder.add(InlineKeyboardButton(text="Home", callback_data="home"))
+    if page < total_pages - 1:
+        builder.add(InlineKeyboardButton(text=">>>>", callback_data=f"navigation_{characteristics}_{page + 1}"))
     return builder.adjust(3).as_markup()
+
+
+async def more_info_heroes(characteristics, hero):
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(text="Посмотреть все контрпики", callback_data=f"moreheroinfo_{hero}"))
+    builder.add(InlineKeyboardButton(text="Назад", callback_data=f"chara_{characteristics}"))
+    return builder.adjust(1).as_markup()
+
+async def back_her(characteristics):
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(text="Назад", callback_data=f"chara_{characteristics}"))
+    return builder.adjust(1).as_markup()

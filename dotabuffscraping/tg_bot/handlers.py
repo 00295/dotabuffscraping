@@ -1,11 +1,17 @@
+import asyncio
+from os import getenv
+from dotenv import load_dotenv
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-from tg_bot.keyboards import characteristics_list, heroes
-from database.requst import check_heroes_id, counters_heroes, get_all_heroes
+from scraping_dotabuff.scraping import main
+from database.models import async_main
+
+from tg_bot.keyboards import characteristics_list, heroes, admin_keyboard, more_info_heroes, back_her
+from database.requst import check_heroes_id, check_counters_heroes, get_all_heroes
 
 router = Router()
 
@@ -20,9 +26,19 @@ async def command_start_handler(message: Message) -> None:
 async def command_help(message: Message) -> None:
     await message.answer("Основные команды:")
 
+@router.message(Command("Admin"))
+async def user_id(message: Message):
+    if message.from_user.id == int(getenv("ADMIN_ID")):
+        await message.answer("Вы зашли как администратор что вы хотитте зделать", reply_markup=admin_keyboard)
+
 @router.message(Command("Heroes"))
 async def command_heroes(message: Message):
     await message.answer("Выберите категорию вашего героя", reply_markup=characteristics_list)
+
+@router.callback_query(F.data.startswith("home"))
+async def command_heroes(callback: CallbackQuery):
+    await callback.answer("")
+    await callback.message.edit_text("Выберите категорию вашего героя", reply_markup=characteristics_list)
 
 @router.message(Command("hero"))
 async def command_heroes(message: Message, state: FSMContext):
@@ -39,7 +55,7 @@ async def write_h(message: Message, state: FSMContext):
         await message.answer("Етого героя не сущиствует попробуйте еще раз")
         return
     else:
-        counter_heroes = await counters_heroes(data_id)
+        counter_heroes = await check_counters_heroes(data_id)
         text = f"Контрпики для {data["name"]}:\n\n"
         for counter_heroe in counter_heroes:
             text += f"{counter_heroe.counter_name}: {counter_heroe.position}\n"
@@ -52,12 +68,47 @@ async def strength_heroes_list(callback: CallbackQuery):
     await callback.answer("")
     await callback.message.edit_text("Выбирете героя", reply_markup= await heroes(characteristic))
 
+
 @router.callback_query(F.data.startswith("heroes_"))
 async def hero(callback: CallbackQuery):
     hero = await check_heroes_id(int(callback.data.split("_")[1]))
-    counter_heroes = await counters_heroes(hero.id)
+    top_counters, worst_counters = await check_counters_heroes(hero.id, full_check=False)
+    text = f"Пять лучших герояв против {hero.name}:\n"
+    for top_counter in top_counters:
+        text += f"{top_counter.counter_name}: {top_counter.position}\n"
+    text += f"\nПять худших герояв против {hero.name}:\n"
+    for worst_counter in worst_counters:
+        text += f"{worst_counter.counter_name}: {worst_counter.position}\n"
+    await callback.answer("")
+    await callback.message.edit_text(text, reply_markup= await more_info_heroes(characteristics=hero.characteristics, hero=hero.id))
+
+@router.callback_query(F.data.startswith("moreheroinfo_"))
+async def more_info_hero(callback: CallbackQuery):
+    hero = await check_heroes_id(int(callback.data.split("_")[1]))
+    counters_heroes = await check_counters_heroes(hero.id, full_check=True)
     text = f"Контрпики для {hero.name}:\n\n"
-    for counter_heroe in counter_heroes:
+    for counter_heroe in counters_heroes:
         text += f"{counter_heroe.counter_name}: {counter_heroe.position}\n"
-    await callback.message.answer(text)
+    await callback.answer("")
+    await callback.message.edit_text(text, reply_markup=await back_her(hero.characteristics))
+
+
+@router.callback_query(F.data.startswith("start_scraping"))
+async def scraping(callback: CallbackQuery):
+    await callback.answer("")
+    await callback.message.edit_text("Вы начали парсинг dotabuff")
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    await async_main()
+    await main()
+
+
+@router.callback_query(F.data.startswith("navigation_"))
+async def navigation(callback: CallbackQuery):
+    nav, characteristics, page = callback.data.split("_")
+    if int(page) < 0:
+        return
+    else:
+        await callback.answer("")
+        await callback.message.edit_text("Выбирете героя", reply_markup= await heroes(characteristics, int(page)))
+
 
