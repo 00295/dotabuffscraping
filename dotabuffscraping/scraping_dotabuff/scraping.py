@@ -43,7 +43,7 @@ async def parse_hero_links(session):
 async def parse_counters(session, hero_url, db_session):
     # Коректируем имя героя
     hero_url_original, characteristic = hero_url
-    hero_name = hero_url_original.text.lower().replace(' ',  '-')
+    hero_name = hero_url_original.text.lower().replace(' ',  '-').replace("'", "")
     # его юрл
     counters_url = f"{BASE_URL}/heroes/{hero_name}/counters"
     #Есть ли герой в базе данных
@@ -107,8 +107,3 @@ async def main():
         tasks = [process_hero(url) for url in hero_urls]
         # Выполняет задачи
         await asyncio.gather(*tasks)
-
-
-if __name__ == "__main__":
-    asyncio.run(async_main())
-    asyncio.run(main())

@@ -19,7 +19,8 @@ admin_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Обновить базу данных", callback_data="start_scraping")]
     ])
 
-async def heroes(characteristics, page: int = 0):
+
+async def heroes(characteristics, page: int = 0, ready_button: bool = False):
     all_heroes = (await get_heroes(characteristics)).all()
     builder = InlineKeyboardBuilder()
     total_pages = (len(all_heroes) + size_pages - 1) // size_pages
@@ -34,13 +35,15 @@ async def heroes(characteristics, page: int = 0):
     builder.add(InlineKeyboardButton(text="Home", callback_data="home"))
     if page < total_pages - 1:
         builder.add(InlineKeyboardButton(text=">>>>", callback_data=f"navigation_{characteristics}_{page + 1}"))
+    if ready_button == True:
+        builder.add(InlineKeyboardButton(text="Готово", callback_data=f"ready_alanytics_{characteristics}"))
     return builder.adjust(3).as_markup()
 
 
-async def more_info_heroes(characteristics, hero):
+async def more_info_heroes(characteristics, hero: str = "Null"):
     builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text="Посмотреть все контрпики", callback_data=f"moreheroinfo_{hero}"))
-    builder.add(InlineKeyboardButton(text="Назад", callback_data=f"chara_{characteristics}"))
+    builder.add(InlineKeyboardButton(text="Посмотреть все контрпики", callback_data=f"moreheroinfo_{hero}_{characteristics}"))
+    builder.add(InlineKeyboardButton(text="Назад", callback_data=f"charadelete_{characteristics}"))
     return builder.adjust(1).as_markup()
 
 async def back_her(characteristics):
