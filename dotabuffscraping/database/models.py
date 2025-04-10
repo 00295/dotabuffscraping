@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from sqlalchemy import Column, Integer, String, ForeignKey, select
 
 # Создаем таблицу postgres
-DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/dotabuffparcer"
+DATABASE_URL = "lalalala"
 # создаем движок базы данных и сесию
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
