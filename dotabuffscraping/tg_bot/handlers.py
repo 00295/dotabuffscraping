@@ -22,11 +22,11 @@ class Write_hero(StatesGroup):
 
 class Base_Command():
     @router.message(CommandStart())
-    async def command_start_handler(message: Message) -> None:
+    async def command_start_handler(message: Message):
         await message.answer("Добро пожаловать!\nЭто бот для анализа статистики героев из сайта дотабафф для Дота2\nНапишите команду /menu для начала\n/hero")
     # Иди нахуй
     @router.message(Command("help"))
-    async def command_help(message: Message) -> None:
+    async def command_help(message: Message):
         await message.answer("Иди нахуй\n/menu")
 
     # Команда для админ меню
