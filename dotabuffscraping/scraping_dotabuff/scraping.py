@@ -1,8 +1,8 @@
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
-from sqlalchemy import Column, Integer, String, ForeignKey, select
-from database.models import async_session, async_main, Counter, Hero
+from sqlalchemy import select
+from database.models import async_session, Counter, Hero
 
 # количество потоков
 sem = asyncio.Semaphore(5)
@@ -14,7 +14,7 @@ HEADERS = {
 BASE_URL = "https://ru.dotabuff.com"
 
 # Удобная функция что бы каждый раз не прописовать код внутри
-async def fetch(session, url):
+async def response(session, url):
     async with session.get(url, headers=HEADERS) as response:
         return await response.text()
 
@@ -22,21 +22,23 @@ async def fetch(session, url):
 async def parse_hero_links(session):
     # Заранее создаем список
     hero_urls = []
-    html = await fetch(session, f"{BASE_URL}/heroes")
+    # хтмл код записуем
+    html = await response(session, f"{BASE_URL}/heroes")
     soup = BeautifulSoup(html, "lxml")
-    # ищем
+    # ищем персонажей выйдет 4 обекта так как характеристик 4
     dotabuff_statics_main_menu = soup.find_all(class_="tw-max-w-full")
     # перебераем что нашли
     for dotabuff_static_ in dotabuff_statics_main_menu:
-        # ище ищем
+        # ищем характеристики
         characteristics = dotabuff_static_.find(class_="tw-mb-3")
-        # выбираем ток текст
+        # и выбираем оттуда текст и записуем
         characteristic = characteristics.text.strip()
+        # тут ищем самих героив
         hero_url = dotabuff_static_.find_all(class_="tw-group tw-relative tw-block tw-aspect-video tw-w-full tw-rounded-sm tw-bg-background tw-shadow-sm tw-shadow-black/20 tw-transition-transform tw-duration-100 hover:tw-z-10 hover:tw-scale-150")
         # записываем все в список и возрощаем в конце
         for url in hero_url:
-            hero_urls.append((url,characteristic))
-
+            hero_urls.append((url,characteristic)) # записываем в лист и отвравляем
+    # возращаем лист
     return hero_urls
 
 
@@ -54,7 +56,7 @@ async def parse_counters(session, hero_url, db_session):
         db_session.add(hero)
         await db_session.flush()
 
-    html = await fetch(session, counters_url)
+    html = await response(session, counters_url)
     soup = BeautifulSoup(html, "lxml")
 
     # ищем в Url нужный клас
@@ -82,7 +84,6 @@ async def parse_counters(session, hero_url, db_session):
         counter_names = name_cells.text.strip()
         # Получаем цифри сили контрпика и записываем
         position = position_cells.get("data-value", "").strip()
-        #print(counter_names)
         if not counter_names or not position:
             continue
         # Добавляем в базу данных hero.id так как при каждом вызовом функции он миняеться остальное росписано выше
@@ -94,10 +95,10 @@ async def parse_counters(session, hero_url, db_session):
 # Основная функция
 async def main():
     async with aiohttp.ClientSession() as session:
-        # вызываем функция что возрощает список героев
+        # вызываем функцию что возрощает список героев
         hero_urls = await parse_hero_links(session)
 
-        # Функция-обёртка, создающая отдельную сессию БД
+        # Функция создающая отдельную сессию БД
         async def process_hero(url):
             # Ограничивает количество потоков
             async with sem:
