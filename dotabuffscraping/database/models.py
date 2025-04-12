@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import sessionmaker, relationship, Mapped
+from sqlalchemy.orm import sessionmaker, relationship, Mapped, mapped_column
 from sqlalchemy import Column, Integer, String, ForeignKey, select
 
 # Создаем таблицу postgres
@@ -26,20 +26,20 @@ class Base(DeclarativeBase,AsyncAttrs):
 # Добавляем таблицы с relationship(связей между таблицами)
 class Hero(Base):
     __tablename__ = "heroes"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    characteristics = Column(String)
-    counters = relationship("Counter", back_populates="hero")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()
+    characteristics: Mapped[str] = mapped_column()
+    counters: Mapped[list["Counter"]] = relationship(back_populates="hero")
 
 
 class Counter(Base):
     __tablename__ = "counters"
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     # Внешний ключ
-    hero_id = Column(Integer, ForeignKey("heroes.id"))
-    counter_name = Column(String)
-    position = Column(String)
-    hero = relationship("Hero", back_populates="counters")
+    hero_id: Mapped[int] = mapped_column(ForeignKey("heroes.id"))
+    counter_name: Mapped[str] = mapped_column()
+    position: Mapped[str] = mapped_column()
+    hero: Mapped["Hero"] = relationship(back_populates="counters")
 
 #Создаем таблици
 async def async_main():

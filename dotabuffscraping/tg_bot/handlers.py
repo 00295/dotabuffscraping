@@ -22,11 +22,11 @@ class Write_hero(StatesGroup):
 
 class Base_Command():
     @router.message(CommandStart())
-    async def command_start_handler(message: Message):
+    async def command_start_handler(message: Message) -> None:
         await message.answer("Добро пожаловать!\nЭто бот для анализа статистики героев из сайта дотабафф для Дота2\nНапишите команду /menu для начала\n/hero")
     # Иди нахуй
     @router.message(Command("help"))
-    async def command_help(message: Message):
+    async def command_help(message: Message) -> None:
         await message.answer("Иди нахуй\n/menu")
 
     # Команда для админ меню
@@ -156,7 +156,7 @@ class menu_Command():
                 text += f"{worst_counter[0]}:{worst_counter[1]}\n"
             await callback.message.edit_text(text, reply_markup= await more_info_heroes(hero.characteristics)) # и выводим
         else: #Если выбраных героев меньше то
-            text = f"Выбирете героев\nВыбрано:"
+            text = f"Выбирете героев\nВыбрано:\n"
             for selectes_her in selectes_heroes: # тут перебираем всех выбраных героев
                 text += f"{selectes_her}\n" # записуем в text 
             await callback.answer("")

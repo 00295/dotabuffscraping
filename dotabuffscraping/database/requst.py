@@ -1,8 +1,8 @@
 from collections import defaultdict
 from database.models import async_session
 from database.models import Hero, Counter
-from sqlalchemy import select, func
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 
 async def get_heroes(characteristics):
@@ -21,8 +21,10 @@ async def chech_many_counters_heroes(hero_ids): # Принимает их айд
     async with async_session() as session:
         query = await session.execute(
             select(Counter).where(Counter.hero_id.in_(hero_ids))
+            #select(Hero).where(Hero.id.in_(hero_ids)) через relationship
+            #.options(selectinload(Hero.counters))
         )
-
+    
         all_counters = query.scalars().all() # all превращает в список
 
         query_names = await session.execute(
